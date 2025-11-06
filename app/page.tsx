@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+import { PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import {
   getAssociatedTokenAddress,
   createTransferInstruction,
@@ -11,6 +11,10 @@ import {
   getAccount
 } from '@solana/spl-token';
 import { logger } from '../utils/logger';
+import { ProxyConnection } from '../utils/proxyConnection';
+
+// Force dynamic rendering to avoid wallet adapter SSR issues
+export const dynamic = 'force-dynamic';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? window.location.origin.replace(':3001', ':3000') : 'https://api.chain-scope.dev');
 const EXAMPLE_WALLET = 'vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg'; // Popular Solana wallet for demo
@@ -177,8 +181,8 @@ export default function Home() {
       const paymentRequirement = paymentChallenge.payment;
       const recipientAddress = paymentRequirement?.payTo || 'BGXPuAMXdY7BgqLNFACLo5Q4afBkea3jTkTqr62e6uLx';
 
-      const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
-      const connection = new Connection(rpcUrl, { commitment: 'confirmed', confirmTransactionInitialTimeout: 60000 });
+      // Use proxy connection to keep Helius API key secure
+      const connection = new ProxyConnection({ commitment: 'confirmed', confirmTransactionInitialTimeout: 60000 });
 
       const USDC_MINT = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v');
       const recipientPubkey = new PublicKey(recipientAddress);
