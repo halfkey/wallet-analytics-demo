@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import {
   getAssociatedTokenAddress,
   createTransferInstruction,
@@ -47,6 +47,7 @@ interface PaymentChallenge {
   currency: string;
   network: string;
   challenge: string;
+  memo: string;
   facilitatorUrl?: string;
   address?: string;
   payment?: X402PaymentRequirement;
@@ -134,6 +135,7 @@ export default function Home() {
           currency: 'USDC',
           network: requirement.network,
           challenge: btoa(JSON.stringify(requirement)),
+          memo: requirement.resource, // Use resource as memo
           payment: requirement,
         });
         setPaymentStatus('Payment required - connect wallet to continue');
@@ -225,6 +227,15 @@ export default function Home() {
           amountInAtomicUnits
         )
       );
+
+      // Add memo instruction with payment ID
+      const memoProgram = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr');
+      const memoInstruction = new TransactionInstruction({
+        keys: [],
+        programId: memoProgram,
+        data: Buffer.from(paymentChallenge.memo, 'utf8'),
+      });
+      transaction.add(memoInstruction);
 
       const { blockhash } = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
