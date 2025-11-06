@@ -14,12 +14,14 @@ LOCAL_DIR="/home/trap/code/wallet-analytics-demo"
 echo "📁 Creating remote directory..."
 ssh $VPS_HOST "mkdir -p $REMOTE_DIR"
 
-# Sync files to VPS (excluding node_modules and .next)
+# Sync files to VPS (excluding node_modules, .next, and sensitive files)
 echo "📤 Syncing files to VPS..."
 rsync -avz --exclude 'node_modules' \
            --exclude '.next' \
            --exclude '.git' \
            --exclude 'deploy.sh' \
+           --exclude '.env.local' \
+           --exclude '.env' \
            $LOCAL_DIR/ $VPS_HOST:$REMOTE_DIR/
 
 # Deploy on VPS
