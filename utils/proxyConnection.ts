@@ -138,14 +138,18 @@ export class ProxyConnection extends Connection {
     // If it's a string, it's a transaction signature
     const signature = typeof strategy === 'string' ? strategy : (strategy as any).signature;
 
-    const result = await this.proxyRpcCall('confirmTransaction', [
-      signature,
-      commitment || 'confirmed',
+    // Use getSignatureStatuses which is the actual RPC method
+    const result = await this.proxyRpcCall('getSignatureStatuses', [
+      [signature],
+      { searchTransactionHistory: true },
     ]);
+
+    // Check if signature was found and confirmed
+    const status = result.value?.[0];
 
     return {
       context: { slot: result.context?.slot || 0 },
-      value: result.value || { err: null }
+      value: { err: status?.err || null }
     };
   }
 }
